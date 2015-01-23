@@ -15,8 +15,9 @@
  */
 package org.eclipse.moquette.spi.impl.subscriptions;
 
-import java.io.Serializable;
 import org.eclipse.moquette.proto.messages.AbstractMessage.QOSType;
+
+import java.io.Serializable;
 
 /**
  * Maintain the information about which Topic a certain ClientID is subscribed 

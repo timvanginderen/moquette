@@ -15,18 +15,23 @@
  */
 package org.eclipse.moquette.spi.impl;
 
-import java.nio.ByteBuffer;
-import java.util.*;
+import android.util.Log;
 
+import org.eclipse.moquette.proto.messages.AbstractMessage;
 import org.eclipse.moquette.spi.IMatchingCondition;
 import org.eclipse.moquette.spi.IMessagesStore;
+import org.eclipse.moquette.spi.ISessionsStore;
 import org.eclipse.moquette.spi.impl.events.PublishEvent;
 import org.eclipse.moquette.spi.impl.subscriptions.Subscription;
-import org.eclipse.moquette.proto.messages.AbstractMessage;
 
-import org.eclipse.moquette.spi.ISessionsStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -38,8 +43,6 @@ public class MemoryStorageService implements IMessagesStore, ISessionsStore {
     private Map<String, List<PublishEvent>> m_persistentMessageStore = new HashMap<String, List<PublishEvent>>();
     private Map<String, PublishEvent> m_inflightStore = new HashMap<String, PublishEvent>();
     private Map<String, PublishEvent> m_qos2Store = new HashMap<String, PublishEvent>();
-    
-    private static final Logger LOG = LoggerFactory.getLogger(MemoryStorageService.class);
     
     public void initStore() {
     }
@@ -64,7 +67,7 @@ public class MemoryStorageService implements IMessagesStore, ISessionsStore {
 
     @Override
     public Collection<StoredMessage> searchMatching(IMatchingCondition condition) {
-        LOG.debug("searchMatching scanning all retained messages, presents are {}", m_retainedStore.size());
+        Log.d("Moquette", "searchMatching scanning all retained messages, presents are " + m_retainedStore.size());
 
         List<StoredMessage> results = new ArrayList<StoredMessage>();
 
@@ -80,7 +83,7 @@ public class MemoryStorageService implements IMessagesStore, ISessionsStore {
 
     @Override
     public void storePublishForFuture(PublishEvent evt) {
-        LOG.debug("storePublishForFuture store evt {}", evt);
+        Log.d("Moquette", "storePublishForFuture store evt " + evt);
         List<PublishEvent> storedEvents;
         String clientID = evt.getClientID();
         if (!m_persistentMessageStore.containsKey(clientID)) {
@@ -169,7 +172,7 @@ public class MemoryStorageService implements IMessagesStore, ISessionsStore {
 
     @Override
     public void persistQoS2Message(String publishKey, PublishEvent evt) {
-        LOG.debug("persistQoS2Message store pubKey {}, evt {}", publishKey, evt);
+        Log.d("Moquette", "persistQoS2Message store pubKey " + publishKey + ", evt " + evt);
         m_qos2Store.put(publishKey, evt);
     }
 

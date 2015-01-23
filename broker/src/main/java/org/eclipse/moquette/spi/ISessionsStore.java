@@ -15,10 +15,10 @@
  */
 package org.eclipse.moquette.spi;
 
+import org.eclipse.moquette.spi.impl.subscriptions.Subscription;
+
 import java.util.List;
 import java.util.Set;
-
-import org.eclipse.moquette.spi.impl.subscriptions.Subscription;
 
 /**
  * Store used to handle the persistence of the subscriptions tree.

@@ -15,6 +15,10 @@
  */
 package org.eclipse.moquette.server;
 
+import android.util.Log;
+
+import org.eclipse.moquette.commons.Constants;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,9 +27,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.Properties;
-import org.eclipse.moquette.commons.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Mosquitto configuration parser.
@@ -36,8 +37,6 @@ import org.slf4j.LoggerFactory;
  * @author andrea
  */
 class ConfigurationParser {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationParser.class);
     
     private Properties m_properties = new Properties();
     
@@ -53,18 +52,18 @@ class ConfigurationParser {
      */
     void parse(File file) throws ParseException {
         if (file == null) {
-            LOG.warn("parsing NULL file, so fallback on default configuration!");
+            Log.w("Moquette", "parsing NULL file, so fallback on default configuration!");
             return;
         }
         if (!file.exists()) {
-            LOG.warn(String.format("parsing not existing file %s, so fallback on default configuration!", file.getAbsolutePath()));
+            Log.w("Moquette", String.format("parsing not existing file %s, so fallback on default configuration!", file.getAbsolutePath()));
             return;
         }
         try {
             FileReader reader = new FileReader(file);
             parse(reader);
         } catch (FileNotFoundException fex) {
-            LOG.warn(String.format("parsing not existing file %s, so fallback on default configuration!", file.getAbsolutePath()), fex);
+            Log.w("Moquette", String.format("parsing not existing file %s, so fallback on default configuration!", file.getAbsolutePath()), fex);
             return;
         }
     }
@@ -77,7 +76,7 @@ class ConfigurationParser {
     void parse(Reader reader) throws ParseException {
         if (reader == null) {
             //just log and return default properties
-            LOG.warn("parsing NULL reader, so fallback on default configuration!");
+            Log.w("Moquette", "parsing NULL reader, so fallback on default configuration!");
             return;
         }
         

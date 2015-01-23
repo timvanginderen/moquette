@@ -15,6 +15,8 @@
  */
 package org.eclipse.moquette.parser.netty;
 
+import android.util.Log;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.CorruptedFrameException;
@@ -22,27 +24,23 @@ import io.netty.util.AttributeMap;
 import java.util.List;
 import org.eclipse.moquette.proto.messages.AbstractMessage;
 import org.eclipse.moquette.proto.messages.PublishMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author andrea
  */
 class PublishDecoder extends DemuxDecoder {
-    
-    private static Logger LOG = LoggerFactory.getLogger(PublishDecoder.class);
 
     @Override
     void decode(AttributeMap ctx, ByteBuf in, List<Object> out) throws Exception {
-        LOG.info("decode invoked with buffer {}", in);
+        Log.i("moquette", "decode invoked with buffer " + in);
         in.resetReaderIndex();
         int startPos = in.readerIndex();
 
         //Common decoding part
         PublishMessage message = new PublishMessage();
         if (!decodeCommonHeader(message, in)) {
-            LOG.info("decode ask for more data after {}", in);
+            Log.i("moquette", "decode ask for more data after " + in);
             in.resetReaderIndex();
             return;
         }

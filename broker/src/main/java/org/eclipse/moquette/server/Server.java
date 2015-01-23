@@ -15,24 +15,24 @@
  */
 package org.eclipse.moquette.server;
 
+import android.os.Environment;
+import android.util.Log;
+
+import org.eclipse.moquette.server.netty.NettyAcceptor;
+import org.eclipse.moquette.spi.impl.SimpleMessaging;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Properties;
-import org.eclipse.moquette.spi.impl.SimpleMessaging;
-import org.eclipse.moquette.server.netty.NettyAcceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 /**
  * Launch a  configured version of the server.
  * @author andrea
  */
 public class Server {
+
     
-    private static final Logger LOG = LoggerFactory.getLogger(Server.class);
-    
-    public static final String STORAGE_FILE_PATH = System.getProperty("user.home") +
-            File.separator + "moquette_store.mapdb";
+    public static final String STORAGE_FILE_PATH = Environment.getExternalStorageDirectory() + File.separator + "moquette_store.mapdb";
 
     private ServerAcceptor m_acceptor;
     SimpleMessaging messaging;
@@ -63,14 +63,14 @@ public class Server {
      * Starts Moquette bringing the configuration from the given file
      */
     public void startServer(File configFile) throws IOException {
-        LOG.info("Using config file: " + configFile.getAbsolutePath());
-        LOG.info("Persistent store file: " + STORAGE_FILE_PATH);
+        Log.i("Moquette", "Using config file: " + configFile.getAbsolutePath());
+        Log.i("Moquette", "Persistent store file: " + STORAGE_FILE_PATH);
 
         ConfigurationParser confParser = new ConfigurationParser();
         try {
             confParser.parse(configFile);
         } catch (ParseException pex) {
-            LOG.warn("An error occurred in parsing configuration, fallback on default configuration", pex);
+            Log.w("Moquette", "An error occurred in parsing configuration, fallback on default configuration", pex);
         }
         Properties configProps = confParser.getProperties();
         startServer(configProps);

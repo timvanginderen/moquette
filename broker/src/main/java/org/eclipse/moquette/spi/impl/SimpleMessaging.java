@@ -15,27 +15,30 @@
  */
 package org.eclipse.moquette.spi.impl;
 
+import android.util.Log;
+
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
+
+import org.eclipse.moquette.proto.messages.AbstractMessage;
+import org.eclipse.moquette.server.IAuthenticator;
+import org.eclipse.moquette.server.ServerChannel;
+import org.eclipse.moquette.spi.IMessagesStore;
+import org.eclipse.moquette.spi.IMessaging;
+import org.eclipse.moquette.spi.ISessionsStore;
+import org.eclipse.moquette.spi.impl.events.LostConnectionEvent;
+import org.eclipse.moquette.spi.impl.events.MessagingEvent;
+import org.eclipse.moquette.spi.impl.events.ProtocolEvent;
+import org.eclipse.moquette.spi.impl.events.StopEvent;
+import org.eclipse.moquette.spi.impl.subscriptions.SubscriptionsStore;
+import org.eclipse.moquette.spi.persistence.MapDBPersistentStore;
 
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import org.eclipse.moquette.spi.IMessaging;
-import org.eclipse.moquette.spi.ISessionsStore;
-import org.eclipse.moquette.spi.IMessagesStore;
-import org.eclipse.moquette.spi.impl.events.*;
-import org.eclipse.moquette.spi.impl.subscriptions.SubscriptionsStore;
-import org.eclipse.moquette.spi.persistence.MapDBPersistentStore;
-import org.eclipse.moquette.proto.messages.*;
-import org.eclipse.moquette.server.IAuthenticator;
-import org.eclipse.moquette.server.ServerChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -48,8 +51,6 @@ import org.slf4j.LoggerFactory;
  * @author andrea
  */
 public class SimpleMessaging implements IMessaging, EventHandler<ValueEvent> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SimpleMessaging.class);
     
     private SubscriptionsStore subscriptions;
     
@@ -97,7 +98,7 @@ public class SimpleMessaging implements IMessaging, EventHandler<ValueEvent> {
 
     
     private void disruptorPublish(MessagingEvent msgEvent) {
-        LOG.debug("disruptorPublish publishing event {}", msgEvent);
+        Log.d("Moquette", "disruptorPublish publishing event " + msgEvent);
         long sequence = m_ringBuffer.next();
         ValueEvent event = m_ringBuffer.get(sequence);
 
@@ -122,23 +123,23 @@ public class SimpleMessaging implements IMessaging, EventHandler<ValueEvent> {
         disruptorPublish(new StopEvent());
         try {
             //wait the callback notification from the protocol processor thread
-            LOG.debug("waiting 10 sec to m_stopLatch");
+            Log.d("Moquette", "waiting 10 sec to m_stopLatch");
             boolean elapsed = !m_stopLatch.await(10, TimeUnit.SECONDS);
-            LOG.debug("after m_stopLatch");
+            Log.d("Moquette", "after m_stopLatch");
             m_executor.shutdown();
             m_disruptor.shutdown();
             if (elapsed) {
-                LOG.error("Can't stop the server in 10 seconds");
+                Log.e("Moquette", "Can't stop the server in 10 seconds");
             }
         } catch (InterruptedException ex) {
-            LOG.error(null, ex);
+            Log.e("Moquette", "error", ex);
         }
     }
     
     @Override
     public void onEvent(ValueEvent t, long l, boolean bln) throws Exception {
         MessagingEvent evt = t.getEvent();
-        LOG.info("onEvent processing messaging event from input ringbuffer {}", evt);
+        Log.i("Moquette", "onEvent processing messaging event from input ringbuffer " + evt);
         if (evt instanceof StopEvent) {
             processStop();
             return;
@@ -182,9 +183,9 @@ public class SimpleMessaging implements IMessaging, EventHandler<ValueEvent> {
 
 
     private void processStop() {
-        LOG.debug("processStop invoked");
+        Log.d("Moquette", "processStop invoked");
         m_storageService.close();
-        LOG.debug("subscription tree {}", subscriptions.dumpTree());
+        Log.d("Moquette", "subscription tree " + subscriptions.dumpTree());
 //        m_eventProcessor.halt();
 //        m_executor.shutdown();
         

@@ -1,3 +1,29 @@
+## Fork of Moquette for Android
+
+Finally an MQTT broker for Android!
+
+This is a fork of the Moquette project for Android. There are a lot of files left which are not needed. The major parts in the modification is to use Gradle build system and to change logging to standard Android logging.
+It requires a fairly recent version of Android because of Java 1.7. Like 4.4 or something. You can probably fix it to support really old Android versions if you change some lines in the source.
+
+To include it in your project you'll have to do the following:
+Download/checkout the project.
+Change your settings.gradle to something similar to this: (You might have to change your module name (:app) and the path to the project (../))
+```
+include ':app', ':broker', ':netty_parser', 'parser_commons'
+project(':broker').projectDir = new File(settingsDir, '../moquette/broker/')
+project(':netty_parser').projectDir = new File(settingsDir, '../moquette/netty_parser/')
+project(':parser_commons').projectDir = new File(settingsDir, '../moquette/parser_commons/')
+```
+
+To start the server do
+```
+new Server().startServer();
+```
+
+This project does not solve problems like creating an Andorid service and such.
+
+Most of the folloing information is still relevant but some things have changed...
+
 ## What is Moquette?
 
 Moquette aims to be a MQTT compliant broker. The broker supports QoS 0, QoS 1 and QoS 2.

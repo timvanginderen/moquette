@@ -15,11 +15,11 @@
  */
 package org.eclipse.moquette.spi;
 
+import org.eclipse.moquette.proto.messages.AbstractMessage;
+import org.eclipse.moquette.spi.impl.events.PublishEvent;
+
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import org.eclipse.moquette.spi.impl.events.PublishEvent;
-import org.eclipse.moquette.proto.messages.AbstractMessage;
-
 import java.util.Collection;
 import java.util.List;
 

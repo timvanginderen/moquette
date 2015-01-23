@@ -16,32 +16,36 @@
 
 package org.eclipse.moquette.spi.persistence;
 
+import android.util.Log;
+
 import org.eclipse.moquette.proto.MQTTException;
+import org.eclipse.moquette.proto.messages.AbstractMessage;
 import org.eclipse.moquette.spi.IMatchingCondition;
 import org.eclipse.moquette.spi.IMessagesStore;
 import org.eclipse.moquette.spi.ISessionsStore;
 import org.eclipse.moquette.spi.impl.events.PublishEvent;
 import org.eclipse.moquette.spi.impl.storage.StoredPublishEvent;
 import org.eclipse.moquette.spi.impl.subscriptions.Subscription;
-import org.eclipse.moquette.proto.messages.AbstractMessage;
-import static org.eclipse.moquette.server.Server.STORAGE_FILE_PATH;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+
+import static org.eclipse.moquette.server.Server.STORAGE_FILE_PATH;
 
 /**
  * MapDB main persistence implementation
  */
 public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MapDBPersistentStore.class);
 
     private ConcurrentMap<String, StoredMessage> m_retainedStore;
     //maps clientID to the list of pending messages stored
@@ -59,9 +63,12 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
         File tmpFile;
         try {
             tmpFile = new File(STORAGE_FILE_PATH);
+            if (tmpFile.exists()) { // XXX: Had to add this section in Android version or it crashes on startup. Feels like it kind of defeats the entire purpose. But I can't figure out if this is a temporary file or actual storage between executions. /Gustav 2014-01-23
+                tmpFile.delete();
+            }
             tmpFile.createNewFile();
         } catch (IOException ex) {
-            LOG.error(null, ex);
+            Log.e("Moquette", null, ex);
             throw new MQTTException("Can't create temp file for subscriptions storage [" + STORAGE_FILE_PATH + "]", ex);
         }
         m_db = DBMaker.newFileDB(tmpFile)
@@ -94,7 +101,7 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
 
     @Override
     public Collection<StoredMessage> searchMatching(IMatchingCondition condition) {
-        LOG.debug("searchMatching scanning all retained messages, presents are {}", m_retainedStore.size());
+        Log.d("Moquette", "searchMatching scanning all retained messages, presents are " + m_retainedStore.size());
 
         List<StoredMessage> results = new ArrayList<StoredMessage>();
 
@@ -121,7 +128,7 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
         m_persistentMessageStore.put(clientID, storedEvents);
         m_db.commit();
         //NB rewind the evt message content
-        LOG.debug("Stored published message for client <{}> on topic <{}>", clientID, evt.getTopic());
+        Log.d("Moquette", "Stored published message for client " + clientID + " on topic " + evt.getTopic());
     }
 
     @Override
@@ -171,15 +178,15 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
     }
 
     public void addNewSubscription(Subscription newSubscription, String clientID) {
-        LOG.debug("addNewSubscription invoked with subscription {} for client {}", newSubscription, clientID);
+        Log.d("Moquette", "addNewSubscription invoked with subscription " + newSubscription + " for client " + clientID);
         if (!m_persistentSubscriptions.containsKey(clientID)) {
-            LOG.debug("clientID {} is a newcome, creating it's subscriptions set", clientID);
+            Log.d("Moquette", "clientID " + clientID + " is a newcome, creating it's subscriptions set");
             m_persistentSubscriptions.put(clientID, new HashSet<Subscription>());
         }
 
         Set<Subscription> subs = m_persistentSubscriptions.get(clientID);
         if (!subs.contains(newSubscription)) {
-            LOG.debug("updating clientID {} subscriptions set with new subscription", clientID);
+            Log.d("Moquette", "updating clientID " + clientID + " subscriptions set with new subscription");
             //TODO check the subs doesn't contain another subscription to the same topic with different
             Subscription existingSubscription = null;
             for (Subscription scanSub : subs) {
@@ -193,7 +200,7 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
             }
             subs.add(newSubscription);
             m_persistentSubscriptions.put(clientID, subs);
-            LOG.debug("clientID {} subscriptions set now is {}", clientID, subs);
+            Log.d("Moquette", "clientID " + clientID + " subscriptions set now is " + subs);
         }
         m_db.commit();
     }
@@ -214,7 +221,7 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
         for (Map.Entry<String, Set<Subscription>> entry : m_persistentSubscriptions.entrySet()) {
             allSubscriptions.addAll(entry.getValue());
         }
-        LOG.debug("retrieveAllSubscriptions returning subs {}", allSubscriptions);
+        Log.d("Moquette", "retrieveAllSubscriptions returning subs " + allSubscriptions);
         return allSubscriptions;
     }
 
@@ -225,14 +232,14 @@ public class MapDBPersistentStore implements IMessagesStore, ISessionsStore {
 
     public void close() {
         this.m_db.commit();
-        LOG.debug("persisted subscriptions {}", m_persistentSubscriptions);
+        Log.d("Moquette", "persisted subscriptions " + m_persistentSubscriptions);
         this.m_db.close();
-        LOG.debug("closed disk storage");
+        Log.d("Moquette", "closed disk storage");
     }
 
     /*-------- QoS 2  storage management --------------*/
     public void persistQoS2Message(String publishKey, PublishEvent evt) {
-        LOG.debug("persistQoS2Message store pubKey: {}, evt: {}", publishKey, evt);
+        Log.d("Moquette", "persistQoS2Message store pubKey: " + publishKey + ", evt: " + evt);
         m_qos2Store.put(publishKey, convertToStored(evt));
     }
 

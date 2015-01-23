@@ -15,13 +15,17 @@
  */
 package org.eclipse.moquette.spi.impl.subscriptions;
 
-import java.text.ParseException;
-import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
+import android.util.Log;
 
 import org.eclipse.moquette.spi.ISessionsStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Represents a tree of topics subscriptions.
@@ -69,27 +73,25 @@ public class SubscriptionsStore {
 
     private TreeNode subscriptions = new TreeNode(null);
     private ISessionsStore m_sessionsStore;
-    private static final Logger LOG = LoggerFactory.getLogger(SubscriptionsStore.class);
 
     /**
      * Initialize the subscription tree with the list of subscriptions.
      */
     public void init(ISessionsStore sessionsStore) {
-        LOG.debug("init invoked");
+        Log.d("Moquette", "init invoked");
         m_sessionsStore = sessionsStore;
         List<Subscription> subscriptions = sessionsStore.listAllSubscriptions();
         //reload any subscriptions persisted
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Reloading all stored subscriptions...subscription tree before {}", dumpTree());
-        }
+
+        //Log.d("Moquette", "Reloading all stored subscriptions...subscription tree before " + dumpTree());
 
         for (Subscription subscription : subscriptions) {
-            LOG.debug("Re-subscribing {} to topic {}", subscription.getClientId(), subscription.getTopicFilter());
+            Log.d("Moquette", "Re-subscribing " + subscription.getClientId() + " to topic " + subscription.getTopicFilter());
             addDirect(subscription);
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Finished loading. Subscription tree after {}", dumpTree());
-        }
+
+        //Log.d("Moquette", "Finished loading. Subscription tree after " + dumpTree());
+
     }
     
     protected void addDirect(Subscription newSubscription) {
@@ -103,7 +105,7 @@ public class SubscriptionsStore {
             tokens = parseTopic(topic);
         } catch (ParseException ex) {
             //TODO handle the parse exception
-            LOG.error(null, ex);
+            Log.e("Moquette", "error", ex);
 //            return;
         }
 
@@ -181,7 +183,7 @@ public class SubscriptionsStore {
     }
 
     public void activate(String clientID) {
-        LOG.debug("Activating subscriptions for clientID <{}>", clientID);
+        Log.d("Moquette", "Activating subscriptions for clientID " + clientID);
         subscriptions.activate(clientID);
         //persist the update
         Set<Subscription> subs = subscriptions.findAllByClientID(clientID);
@@ -199,7 +201,7 @@ public class SubscriptionsStore {
             tokens = parseTopic(topic);
         } catch (ParseException ex) {
             //TODO handle the parse exception
-            LOG.error(null, ex);
+            Log.e("Moquette", null, ex);
             return Collections.EMPTY_LIST;
         }
 
@@ -268,7 +270,7 @@ public class SubscriptionsStore {
 //            }
             return i == msgTokens.size();
         } catch (ParseException ex) {
-            LOG.error(null, ex);
+            Log.e("Moquette", null, ex);
             throw new RuntimeException(ex);
         }
     }

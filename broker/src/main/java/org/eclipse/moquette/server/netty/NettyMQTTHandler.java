@@ -15,19 +15,31 @@
  */
 package org.eclipse.moquette.server.netty;
 
+import android.util.Log;
+
+import org.eclipse.moquette.proto.Utils;
+import org.eclipse.moquette.proto.messages.AbstractMessage;
+import org.eclipse.moquette.proto.messages.PingRespMessage;
+import org.eclipse.moquette.server.Constants;
+import org.eclipse.moquette.spi.IMessaging;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import java.util.HashMap;
-import java.util.Map;
-import org.eclipse.moquette.spi.IMessaging;
-import org.eclipse.moquette.proto.Utils;
-import org.eclipse.moquette.proto.messages.AbstractMessage;
-import static org.eclipse.moquette.proto.messages.AbstractMessage.*;
-import org.eclipse.moquette.proto.messages.PingRespMessage;
-import org.eclipse.moquette.server.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.eclipse.moquette.proto.messages.AbstractMessage.CONNECT;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.DISCONNECT;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.PINGREQ;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.PUBACK;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.PUBCOMP;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.PUBLISH;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.PUBREC;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.PUBREL;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.SUBSCRIBE;
+import static org.eclipse.moquette.proto.messages.AbstractMessage.UNSUBSCRIBE;
 
 /**
  *
@@ -35,15 +47,14 @@ import org.slf4j.LoggerFactory;
  */
 @Sharable
 public class NettyMQTTHandler extends ChannelInboundHandlerAdapter {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(NettyMQTTHandler.class);
+
     private IMessaging m_messaging;
     private final Map<ChannelHandlerContext, NettyChannel> m_channelMapper = new HashMap<ChannelHandlerContext, NettyChannel>();
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) {
         AbstractMessage msg = (AbstractMessage) message;
-        LOG.info("Received a message of type {}", Utils.msgType2String(msg.getMessageType()));
+        Log.i("Moquette", "Received a message of type " + Utils.msgType2String(msg.getMessageType()));
         try {
             switch (msg.getMessageType()) {
                 case CONNECT:
@@ -71,7 +82,7 @@ public class NettyMQTTHandler extends ChannelInboundHandlerAdapter {
                     break;
             }
         } catch (Exception ex) {
-            LOG.error("Bad error in processing the message", ex);
+            Log.e("Moquette", "Bad error in processing the message", ex);
         }
     }
     

@@ -22,7 +22,6 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeMap;
 import java.io.UnsupportedEncodingException;
 import org.eclipse.moquette.proto.messages.AbstractMessage;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -144,7 +143,6 @@ public class Utils {
             //NB every Java platform has got UTF-8 encoding by default, so this 
             //exception are never raised.
         } catch (UnsupportedEncodingException ex) {
-            LoggerFactory.getLogger(Utils.class).error(null, ex);
             return null;
         }
         //Utils.writeWord(out, raw.length);

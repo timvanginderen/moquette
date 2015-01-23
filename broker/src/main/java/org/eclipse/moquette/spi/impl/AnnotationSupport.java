@@ -15,11 +15,12 @@
  */
 package org.eclipse.moquette.spi.impl;
 
+import org.eclipse.moquette.proto.messages.AbstractMessage;
+import org.eclipse.moquette.server.ServerChannel;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import org.eclipse.moquette.proto.messages.AbstractMessage;
-import org.eclipse.moquette.server.ServerChannel;
 
 /**
  * Annotation @MQTTMessage helper class.

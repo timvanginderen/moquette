@@ -59,12 +59,14 @@ class AnnotationSupport {
     void dispatch(ServerChannel session, AbstractMessage msg) {
         Method targetMethod = this.messageClassToMethod.get(msg.getClass());
         if (targetMethod == null) {
-            throw new RuntimeException("Can't dispatch to any @MQTTMessage marked the message: " + msg);
+//            throw new RuntimeException("Can't dispatch to any @MQTTMessage marked the message: " + msg);
+            return;
         }
         try {
             targetMethod.invoke(targetInstance, session, msg);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+//            throw new RuntimeException(ex);
+            ex.printStackTrace();
         } 
     }
 }
